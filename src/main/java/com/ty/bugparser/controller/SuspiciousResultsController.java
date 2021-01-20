@@ -60,6 +60,11 @@ public class SuspiciousResultsController {
     private int timeLimitHours;
     private int maxUsersCount;
 
+    @RequestMapping("/Analyse")
+    public String countNumber(HttpSession session, Model model) {
+        return "/BugAnalyse/BugAnalyse";
+    }
+
     @RequestMapping("/getATestcase")
     @ResponseBody
     public String getATestcase() {

@@ -134,7 +134,7 @@ public class Executor {
         // 创建临时文件，将测试用例写入该文件
         String testcaseFileName = createFile();
 
-        String[] commands_get = {prefix, bashFilePath, "--get-testcase", testcaseFileName};
+        String[] commands_get = {"timeout", "-s9", "600", prefix, bashFilePath, "--get-testcase", testcaseFileName};
 
         executeProcess(commands_get);
 
@@ -153,7 +153,7 @@ public class Executor {
 
         String testcaseFileName = createJson();
 
-        String[] commands = {prefix, bashFilePath, "--get-testcase", testcaseFileName, testcaseId};
+        String[] commands = {"timeout", "-s9", "600", prefix, bashFilePath, "--get-testcase", testcaseFileName, testcaseId};
 
         executeProcess(commands);
 
@@ -168,7 +168,7 @@ public class Executor {
         提交测试用例
      */
     public Boolean submitTestcase(String testcaseId){
-        String[] commands = {prefix, bashFilePath, "--commit", testcaseId};
+        String[] commands = {"timeout", "-s9", "600", prefix, bashFilePath, "--commit", testcaseId};
         try {
             String result = executeProcess(commands);
             writeInFile(result);
@@ -186,7 +186,7 @@ public class Executor {
         // 创建临时文件，将测试用例写入该文件
         String testcaseFileName = writeInFile(code);
 
-        String[] commands = {prefix, bashFilePath, "--reduce", testcaseFileName};
+        String[] commands = {"timeout", "-s9", "600", prefix, bashFilePath, "--reduce", testcaseFileName};
 
         String result = executeProcess(commands);
 
@@ -211,7 +211,7 @@ public class Executor {
         // 创建临时文件，将测试用例写入该文件
         String testcaseFileName = writeInFile(code);
 
-        String[] commands = {prefix, bashFilePath, "--run", testcaseFileName};
+        String[] commands = {"timeout", "-s9", "600", prefix, bashFilePath, "--run", testcaseFileName};
 
         String result = executeProcess(commands);
 
