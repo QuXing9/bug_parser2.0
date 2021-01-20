@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ty.bugparser.mapper.OriginalTestResultMapper">
+
+    <select id="queryOriginalTestResultByHarnessId" resultType="OriginalTestResult">
+        SELECT `Engines`.testbed AS testbed,
+            `Engines`.engineName AS `engine`,
+            h.id AS harnessID,
+            h.returncode AS returncode,
+            h.stdout AS stdout,
+            h.stderr AS stderr,
+            h.duration_ms AS duration_ms
+        From HarnessResults h INNER JOIN Testcases INNER JOIN `Engines`
+            on h.testcase=Testcases.id AND
+               h.testbed=`Engines`.id AND
+               h.testcase=(SELECT testcase FROM HarnessResults WHERE id=#{harnessId})
+    </select>
+
+</mapper>

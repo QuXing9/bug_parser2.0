@@ -1,0 +1,70 @@
+################用户自定义配置################
+user:
+  # 这三项合起来是一个执行测试脚本对测试用例进行执行的命令：
+  # `bash /export/nisl/yhy/javascriptFuzzingOther/test/ty.sh /export/nisl/ty/temp/randomName.js`
+  executor:
+#    prefix: bash
+#    bashFilePath: /export/nisl/yhy/javascriptFuzzingOther/test/lhb.sh
+#    tempFileDir: /export/nisl/ty/temp/
+    prefix: python
+    bashFilePath: /home/yhy/EmbeddedFuzzer/src/tools.py
+    tempFileDir: /home/yhy/tmp/
+
+
+
+  gettestcase:
+    # 用例锁定的超时时间（单位：小时）
+    timeLimitHours: 2
+    # 此系统允许的最大用户数目（与同步取用例相关）
+    maxUsersCount: 10
+
+##################系统配置###################
+server:
+  max-http-header-size: 4048576
+  tomcat:
+    max-http-form-post-size: 1000MB
+  port: 8081
+#  servlet:
+#    context-path: /bug-parser-test
+
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1000MB  #单个文件的最大上限
+      max-request-size: 1000MB #单个请求的文件总大小上限
+
+  # 配置数据源
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    username:
+    password:
+    # 服务器测试数据库
+#    url: jdbc:sqlite:/export/nisl/wy/DeepSmith/workspace/result/result.db
+
+#    # 服务器
+#    url: jdbc:sqlite:/export/nisl/yhy/mutationData/qx_1st/workspace/result/result.db
+#    url: jdbc:sqlite:/export/nisl/yhy/mutationData/qx_2nd/workspace/result/result.db
+
+    # 本地测试数据库
+    url: jdbc:sqlite:/home/yhy/workspace/top2000corpus-20200410-FX-SF.db
+#    url: jdbc:sqlite:E:\data\top2000corpus-backup-20210115.db
+
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+    prefix: classpath:/templates/
+
+
+#
+logging:
+  level:
+    root: warn
+
+# mybatis配置
+mybatis:
+  type-aliases-package: com.ty.bugparser.pojo
+  mapper-locations: classpath:com/ty/bugparser/mapper/*.xml
+#  config-location: 这是mybatis的配置文件，依然可以保留

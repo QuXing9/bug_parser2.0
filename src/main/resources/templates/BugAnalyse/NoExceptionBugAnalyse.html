@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>用例分析</title>
+		<!-- Bootstrap core CSS -->
+		<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+		<link rel="stylesheet" th:href="@{/layui/css/layui.css}"  media="all">
+
+		<!-- Custom styles for this template -->
+		<link th:href="@{/css/dashboard.css}" rel="stylesheet">
+
+		<!-- 代码编辑器格式 -->
+		<style type="text/css" media="screen">
+			#editor {
+				/*position: absolute;*/
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				height: 440px;
+				width: 500px;
+			}
+			#editor2 {
+				/*position: absolute;*/
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				height: 440px;
+				width: 500px;
+			}
+		</style>
+
+		<!--JQuery依赖和三个Ajax请求-->
+		<script th:src="@{/js/jquery/3.1.1/jquery.min.js}"></script>
+		<script>
+			var parsed_object;
+
+			// 获取一个随机的用例并填充其对应的3个ID值
+		  	function getATestcase() {
+		  		if (editor.getValue().length !== 0) {
+		  			let result = confirm("检测到你当前用例可能没有分析完，你确定要获取下一个用例吗?");
+		  			if (result === true) {
+						get();
+					}
+				} else {
+		  			get();
+				}
+		    }
+
+		    function get() {
+				$.post({
+					url: "getATestcase",  // 这里的前缀是 /NoExceptionResults，因为是从那里返回来的
+					data: {},
+					success: function(data) {
+						// 获取传回的值并填充
+						parsed_object = JSON.parse(data);
+						$("#SuspiciousId").text("NoExceptionId:" + parsed_object["suspiciousId"]);
+						$("#HarnessId").text("HarnessId:" + parsed_object["harnessId"]);
+						$("#TestcaseId").text("TestcaseId:" + parsed_object["testcaseId"]);
+						setValue(editor, parsed_object["testcase"]);
+					},
+					error: function(){ alert("获取用例出错，可能数据库中没有可疑用例了。请重试或联系tianyang!")}
+				});
+			}
+
+		  	// 用例执行的异步请求
+		    function run(code) {
+				$.post({
+					url: "run",
+					data: {code : code},
+					success: function(result) {
+						// result为该用例执行的结果，将其赋给右边的代码编辑器
+						setValue(editor2, result);
+						changeMode(editor2, "ace/mode/scheme")
+					},
+					error: function(){ alert("执行用例出错，请重试并联系tianyang!")}
+				});
+			}
+
+		    // 用例还原的异步请求
+		    function recoverTestcase() {
+				$.post({
+					url: "recoverTestcase",
+					data: {testcaseId : parsed_object['testcaseId']},
+					success: function(data) {
+						// data为还原之后的测试用例
+						setValue(editor, data);
+					},
+					error: function(){ alert("还原用例出错，请重试并联系tianyang!")}
+				});
+			}
+
+			// 提交保存用例的异步请求
+			function submitTestcase() {
+				$.post({
+					url: "submitTestcase",
+					data: {suspiciousId: parsed_object["suspiciousId"], testcaseId: parsed_object["testcaseId"],
+						simplifiedCase: editor.getValue(), assignee: $('#username').text().split(' ')[1]},
+					success: function(data) {
+						// if (data === '1') {
+						// 	alert("用例提交成功!");
+						// 	// setTimeout(function(){location.reload()}, 1000);
+						// } else {
+						// 	alert("用例提交失败，请重试!");
+						// }
+					},
+					error: function(){ alert("用例提交失败，请重试!")}
+				});
+			}
+
+			// 打开提交的弹窗
+		    function openSubmitWindow() {
+				layer.open({
+				    type: 1,
+					title: '提交用例',
+				    skin: 'layui-layer-rim', //加上边框
+				    area: ['400px', '300px'], //宽高
+				    content:
+						`
+						<form class="layui-form">
+
+						  <div class="layui-form-item">
+							<label class="layui-form-label">操作人：</label>
+							<div class="layui-input-block">
+							  <input id="assignee" type="text" class="layui-input" style="width: 200px; background-color: #c6c8ca" readonly="readonly">
+							</div>
+						  </div>
+
+<!--						  <div class="layui-form-item">-->
+<!--							<label class="layui-form-label">是否提交精简后用例：</label>-->
+<!--							<div class="layui-input-block">-->
+<!--							  <input type="checkbox" name="close" lay-skin="switch" lay-text="ON|OFF">-->
+<!--							</div>-->
+<!--						  </div>-->
+
+						  <div class="layui-form-item">
+							<div class="layui-input-block">
+							  <button class="layui-btn" onclick="submitTestcase()">立即提交</button>
+							</div>
+						  </div>
+						</form>
+						`
+				});
+
+				layui.use('form', function(){
+				  var form = layui.form;
+				  var username = $('#username').text().split(' ')[1];
+				  form.render();
+				  $('#assignee').attr('value', username);
+
+				  // $('#susId').attr('value', parsed_object["suspiciousId"]);
+				  // $('#caseId').attr('value', parsed_object["testcaseId"]);
+
+				  //监听提交
+				  // form.on('submit(formDemo)', function(data){
+					// layer.msg(JSON.stringify(data.field));
+					// return false;
+				  // });
+				});
+			}
+
+			// 打开获取用例初始测试结果的弹窗
+			function openOriginalTestResultWindow() {
+				layer.open({
+				    type: 1,
+				    skin: 'layui-layer-rim', //加上边框
+					title: '差分测试结果',
+				    area: ['1100px', '450px'], //宽高
+				    content:
+						`
+						<div>
+							<table lay-filter="test" id="OriginalTestResultsTable"></table>
+						</div>
+						`
+				});
+
+				layui.use('table', function(){
+				  var table = layui.table;
+				  table.render({
+					elem: '#OriginalTestResultsTable'
+					,height: 600
+					,url: 'getOriginalResult' + '/' +  String(parsed_object["suspiciousId"])
+					,cellMinWidth: 80
+					,cols: [ [ //表头
+						   {field: 'testbed', title: 'testbed', width: 100}
+						   ,{field: 'engine', title: 'engine', width: 100}
+						   ,{field: 'returncode', title: 'returncode', width: 100}
+						   ,{field: 'stdout', title: 'stdout', width:300}
+						   ,{field: 'stderr', title: 'stderr', width:300}
+						   ,{field: 'duration_ms', title: '执行时间(ms)', width: 100}
+						   ,{field: 'isBug', title: 'analyse', width: 100, templet: function(ot) {
+						       return isBugMap(ot.isBug);
+							  }}
+						   ] ]
+				  });
+				});
+
+				function isBugMap(isBug) {
+					if (isBug === 1 || isBug === '1') {
+						return '*';
+					} else {
+						return '';
+					}
+				}
+			}
+
+			// 获取精简前的用例的异步请求
+			function getBeforeSimplifiedTestcase() {
+				if (editor2.getValue().length !== 0) {
+		  			let result = confirm("检测到你当前结果框内有内容，获取精简前的用例将导致该结果被覆盖，你确定要获取吗？");
+		  			if (result === true) {
+						getBeforeSimplifiedTestcaseAjaxRequest();
+					}
+				} else {
+		  			getBeforeSimplifiedTestcaseAjaxRequest();
+				}
+
+				function getBeforeSimplifiedTestcaseAjaxRequest() {
+					$.post({
+						url: "/SuspiciousResults/getBeforeSimplifiedTestcase",
+						data: {testcaseId : parsed_object['testcaseId']},
+						success: function(data) {
+							// data为还原之后的测试用例
+							setValue(editor2, data);
+							changeMode(editor2, "ace/mode/javascript");
+						},
+						error: function(){ alert("获取精简前的用例出错，请重试并联系tianyang!")}
+					});
+				}
+			}
+
+			// function stopRefresh() {
+		  	// 	return "自定义内容";
+			// }
+		</script>
+	</head>
+
+<!--	<body onbeforeunload="return stopRefresh()">-->
+	<body>
+		<script th:src="@{/layui/layui.all.js}" charset="utf-8"></script>
+		<script th:src="@{/ace/src-min-noconflict/ace.js}"></script>
+
+		<div th:replace="~{/commons/commons::topbar(page='NoExceptionBugAnalyse.html')}"></div>
+
+		<div class="container-fluid">
+			<div class="row">
+
+				<div th:replace="~{/commons/commons::sidebar(page='NoExceptionBugAnalyse.html')}"></div>
+
+				<main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+
+					<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+
+						<div class="btn-group mr-2">
+							<button class="btn btn-sm btn-outline-secondary" onclick="getATestcase()">获取用例</button>
+						</div>
+
+						<div class="btn-group mr-2">
+							<button class="btn btn-sm btn-outline-secondary" onclick="run(editor.getValue())">运行</button>
+							<button class="btn btn-sm btn-outline-secondary" onclick="openSubmitWindow()">提交</button>
+							<button class="btn btn-sm btn-outline-secondary" onclick="recoverTestcase()">恢复用例</button>
+						</div>
+
+						<div class="btn-group mr-2">
+							<button class="btn btn-sm btn-outline-secondary" onclick="openOriginalTestResultWindow()">查看差分结果</button>
+						</div>
+
+						<div class="btn-group mr-2">
+							<button class="btn btn-sm btn-outline-secondary" onclick="getBeforeSimplifiedTestcase()">查看精简前用例</button>
+						</div>
+
+						<div class="btn-toolbar mb-2 mb-md-0">
+						<table>
+							<tr>
+								<th>
+									<span id="SuspiciousId"></span>
+									<span id="HarnessId"></span>
+									<span id="TestcaseId"></span>
+								</th>
+							</tr>
+						</table>
+							<div>
+
+							</div>
+							<div>
+							<ul>
+
+							</ul>
+						</div>
+						</div>
+
+
+					</div>
+
+					<!--两个代码输入框组件-->
+					<table>
+						<tr>
+							<th><div id="editor"></div></th>
+							<th><div id="editor2"></div></th>
+						</tr>
+					</table>
+
+				</main>
+			</div>
+		</div>
+		<script th:src="@{/layer-v3.1.1/layer/layer.js}"></script>
+
+		<!--代码输入框的渲染及取值脚本-->
+		<script>
+			var editor = ace.edit("editor");
+			editor.setTheme("ace/theme/monokai");
+			editor.session.setMode("ace/mode/javascript");
+			editor.setOption("wrap", "free");
+
+			var editor2 = ace.edit("editor2");
+			editor2.setTheme("ace/theme/monokai");
+			editor2.session.setMode("ace/mode/scheme");
+			editor2.setOption("wrap", "free");
+
+			function setValue(node, data) {
+				node.setValue(data);
+			}
+
+			function changeMode(node, modeType) {
+				node.session.setMode(modeType);
+			}
+		</script>
+	</body>
+</html>

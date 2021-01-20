@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ty.bugparser.mapper.SuspiciousResultsMapper">
+
+    <select id="queryAllSuspiciousResults" resultType="SuspiciousResults">
+        SELECT * FROM SuspiciousResults
+    </select>
+
+    <select id="queryAllAnalysed" resultType="SuspiciousResults">
+        SELECT * FROM SuspiciousResults WHERE assignee IS NOT NULL
+    </select>
+
+    <select id="queryAllNoAnalysed" resultType="SuspiciousResults">
+        SELECT * FROM SuspiciousResults WHERE assignee IS NULL
+    </select>
+
+    <select id="queryRandomNoAnalysedSuspiciousId" resultType="_int">
+        SELECT id, output_id
+        FROM SuspiciousResults
+        WHERE assignee IS NULL
+        ORDER BY RANDOM()
+        LIMIT 1
+    </select>
+
+    <select id="queryHarnessIdBySuspiciousId" resultType="_int">
+        SELECT output_id FROM SuspiciousResults WHERE id = #{suspiciousId}
+    </select>
+
+    <select id="queryTestcaseIdByHarnessId" resultType="_int">
+        SELECT testcase FROM HarnessResults WHERE id = #{harnessId}
+    </select>
+
+    <select id="queryTestcaseCodeByTestcaseId" resultType="string">
+        SELECT testcase FROM Testcases WHERE id = #{testcaseId}
+    </select>
+
+    <select id="queryBeforeSimplifiedTestcaseByTestcaseId" resultType="string">
+        SELECT testcase FROM Testcases WHERE id = #{testcaseId}
+    </select>
+
+    <select id="querySuspiciousResultsById" resultType="SuspiciousResults">
+        SELECT * FROM SuspiciousResults WHERE id = #{id}
+    </select>
+
+    <update id="updateSuspiciousResults" parameterType="SuspiciousResults">
+        UPDATE SuspiciousResults
+        SET bugType=#{bugType},
+            `engine`=#{engine},
+            output_id=#{output_id},
+            bugLabel=#{bugLabel},
+            reason=#{reason},
+            remarks=#{remarks},
+            assignee=#{assignee},
+            submit_date=#{submit_date}
+        WHERE id=#{id}
+    </update>
+
+    <select id="querySuspiciousTestcaseByKeyword" resultType="Testcase">
+        SELECT *
+        FROM Testcases t
+        WHERE
+            id IN (SELECT testcase FROM HarnessResults h, SuspiciousResults s WHERE s.output_id = h.id)
+            AND t.testcase LIKE '%' || #{keyword} || '%'
+    </select>
+
+    <select id="querySuspiciousResultsByClassifyId" resultType="SuspiciousResults">
+        SELECT * FROM SuspiciousResults WHERE classifyId = #{classifyId}
+    </select>
+
+</mapper>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://getbootstrap.com/docs/4.0/examples/dashboard/ -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>所有类别信息</title>
+		<!-- Bootstrap core CSS -->
+		<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+		<link rel="stylesheet" th:href="@{/layui/css/layui.css}"  media="all">
+
+		<!-- Custom styles for this template -->
+		<link th:href="@{/css/dashboard.css}" rel="stylesheet">
+	</head>
+
+	<body>
+		<script th:src="@{/layui/layui.all.js}" charset="utf-8"></script>
+		<div th:replace="~{/commons/commons::topbar(page='ErrorType/list.html')}"></div>
+
+		<div class="container-fluid">
+			<div class="row">
+
+				<div th:replace="~{/commons/commons::sidebar(page='ErrorType/list.html')}"></div>
+
+				<main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+
+					<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+						<h1 id="PageTitle" class="h2">所有类别信息</h1>
+						<div class="btn-toolbar mb-2 mb-md-0">
+<!--							<div class="btn-group mr-2">-->
+<!--								<button class="btn btn-sm btn-outline-secondary" onclick="renderTable('queryAll', '所有可疑用例信息')">查看所有</button>-->
+<!--								<button class="btn btn-sm btn-outline-secondary" onclick="renderTable('queryAllAnalysed', '分析过的可疑用例')">仅显示分析过的</button>-->
+<!--								<button class="btn btn-sm btn-outline-secondary" onclick="renderTable('queryAllNoAnalysed', '未分析的可疑用例')">仅显示未分析的</button>-->
+<!--							</div>-->
+						</div>
+					</div>
+
+					<div>
+						<table class="layui-hide" lay-filter="ErrorTypeTable" id="ErrorTypeTable"></table>
+					</div>
+				</main>
+			</div>
+		</div>
+
+		<script>
+			layui.use('table', function(){
+			  var table = layui.table;
+
+			  table.render({
+				elem: '#ErrorTypeTable'
+				,height: 600
+				,url: 'queryAllErrorType'
+				,cellMinWidth: 80
+				,cols: [ [ //表头
+					   {field: 'id', title: 'ID', sort: true, align: 'left', width: 80}
+					   ,{field: 'error_type', title: '类型', sort: true, width: 80}
+					   ,{field: 'engine', title: '异常引擎', sort: true, width:140}
+					   ,{field: 'error_api', title: '异常API', sort:true, width:200}
+					   ,{field: 'count', title: '次数', sort: true, width: 80}
+					   ,{field: 'error_info', title: '异常信息'}
+					   ] ]
+			    ,page: true
+			  });
+
+			  //监听行单击事件（双击事件为：rowDouble）
+			  table.on('row(ErrorTypeTable)', function(obj){
+			  	// 此处的 data 就是该行数据对象
+				var data = obj.data;
+
+				// layer.alert(JSON.stringify(data), {
+				//   title: '当前行数据：'
+				// });
+
+				layer.open({
+				    type: 1,
+				    skin: 'layui-layer-rim', //加上边框
+					title: '该类部分用例',
+				    area: ['1100px', '450px'], //宽高
+				    content:
+						`
+						<div>
+							<table lay-filter="test" id="PartOfSuspiciousResults"></table>
+						</div>
+						`
+				});
+
+				layui.use('table', function(){
+				  var table = layui.table;
+				  table.render({
+					elem: '#PartOfSuspiciousResults'
+					,height: 600
+					,url: 'queryErrorTypeByClassifyId' + '/' +  String(data['id'])
+					,cellMinWidth: 80
+				    ,page: true
+					,cols: [ [ //表头
+						   {field: 'code', title: '用例代码'}
+						   ] ]
+				  });
+				});
+
+				// //标注选中样式
+				// obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+
+			  });
+
+
+			});
+		</script>
+	</body>
+</html>

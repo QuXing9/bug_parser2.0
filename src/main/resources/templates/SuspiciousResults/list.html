@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://getbootstrap.com/docs/4.0/examples/dashboard/ -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>查看可疑用例</title>
+		<!-- Bootstrap core CSS -->
+		<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+		<link rel="stylesheet" th:href="@{/layui/css/layui.css}"  media="all">
+
+		<!-- Custom styles for this template -->
+		<link th:href="@{/css/dashboard.css}" rel="stylesheet">
+	</head>
+
+	<body>
+		<script th:src="@{/layui/layui.all.js}" charset="utf-8"></script>
+		<div th:replace="~{/commons/commons::topbar(page='Suspicious/list.html')}"></div>
+
+		<div class="container-fluid">
+			<div class="row">
+
+				<div th:replace="~{/commons/commons::sidebar(page='Suspicious/list.html')}"></div>
+
+				<main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+
+					<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+						<h1 id="PageTitle" class="h2">所有可疑用例信息</h1>
+						<div class="btn-toolbar mb-2 mb-md-0">
+							<div class="btn-group mr-2">
+								<button class="btn btn-sm btn-outline-secondary" onclick="renderTable('queryAll', '所有可疑用例信息')">查看所有</button>
+								<button class="btn btn-sm btn-outline-secondary" onclick="renderTable('queryAllAnalysed', '分析过的可疑用例')">仅显示分析过的</button>
+								<button class="btn btn-sm btn-outline-secondary" onclick="renderTable('queryAllNoAnalysed', '未分析的可疑用例')">仅显示未分析的</button>
+							</div>
+						</div>
+					</div>
+
+					<div>
+						<table lay-filter="test" id="SuspiciousResultsTable"></table>
+					</div>
+				</main>
+			</div>
+		</div>
+
+		<script>
+			renderTable("queryAll", "所有可疑用例信息");
+
+			function renderTable(url, pageTitleContent) {
+				document.getElementById("PageTitle").innerText = pageTitleContent;
+				layui.use('table', function(){
+				  var table = layui.table;
+				  table.render({
+					elem: '#SuspiciousResultsTable'
+					,height: 600
+					,url: url
+					,cellMinWidth: 80
+					,page: true //开启分页
+
+					,cols: [ [ //表头
+						   {field: 'id', title: 'ID', sort: true, fixed: 'left', width: 100}
+						   ,{field: 'output_id', title: '用例ID', width: 100}
+						   ,{field: 'bugType', title: 'BUG表现', sort: true, width:300}
+						   // ,{field: 'engine', title: '出错引擎', sort: true, width: 120}
+						   // ,{field: 'reason', title: '原因分析'}
+						   // ,{field: 'bugLabel', title: '标签', sort: true, width: 80}
+						   ,{field: 'assignee', title: '分析人', sort: true, width:150}
+						   // ,{field: 'remarks', title: '备注'}
+						   ,{field: 'submit_date', title: '提交日期', sort: true, templet: function(d) {
+						       return showTime(d.submit_date);
+							  }}
+						   ] ]
+				  });
+				});
+			}
+
+			function showTime(tempDate) {
+				// 假如从数据库中读出的毫秒数是0，那么说明是以前提交的例子，因此就不统计日期了；
+				if (tempDate === 0) {
+					return '';
+				}
+
+			    var d = new Date(tempDate); 
+			    var year = d.getFullYear();
+			    var month = d.getMonth();
+			    month++;
+			    var day = d.getDate();
+			    var hours = d.getHours();
+			    
+			    var minutes = d.getMinutes();
+			    var seconds = d.getSeconds();
+			    month = month<10 ? "0"+month:month;
+			    day = day<10 ? "0"+day:day;
+			    hours = hours<10 ? "0"+hours:hours;
+			    minutes = minutes<10 ? "0"+minutes:minutes;
+			    seconds = seconds<10 ? "0"+seconds:seconds;
+			    
+			    var time = year+"-"+month+"-"+day+" "+hours+":"+minutes+":"+seconds;
+			    return time;
+			}
+
+		</script>
+	</body>
+</html>
